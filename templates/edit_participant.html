@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Изменить участника{% endblock %}
+{% block content %}
+  <h1 class="h4 mb-4">Изменить участника</h1>
+  <form class="row g-3" method="post">
+    <div class="col-12">
+      <label class="form-label" for="name">Имя / компания*</label>
+      <input class="form-control" type="text" id="name" name="name" value="{{ participant.name }}" required />
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="contact_info">Контакты</label>
+      <input class="form-control" type="text" id="contact_info" name="contact_info" value="{{ participant.contact_info or '' }}" />
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="notes">Примечания</label>
+      <textarea class="form-control" id="notes" name="notes" rows="4">{{ participant.notes or '' }}</textarea>
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Сохранить</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('participants') }}">Отмена</a>
+    </div>
+  </form>
+{% endblock %}
+
+

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Новый предмет{% endblock %}
+{% block content %}
+  <h1 class="h4 mb-4">Добавить предмет на аукцион</h1>
+  <form class="row g-3" method="post">
+    <div class="col-md-6">
+      <label class="form-label" for="auction_id">Аукцион*</label>
+      <select class="form-select" id="auction_id" name="auction_id" required>
+        <option value="">Выберите...</option>
+        {% for auction in auctions %}
+          <option value="{{ auction.id }}">{{ auction.name }} — {{ auction.starts_at }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="seller_id">Продавец*</label>
+      <select class="form-select" id="seller_id" name="seller_id" required>
+        <option value="">Выберите...</option>
+        {% for participant in participants %}
+          <option value="{{ participant.id }}">{{ participant.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" for="lot_number">Номер лота*</label>
+      <input class="form-control" type="text" id="lot_number" name="lot_number" required />
+    </div>
+    <div class="col-md-8">
+      <label class="form-label" for="title">Название предмета*</label>
+      <input class="form-control" type="text" id="title" name="title" required />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" for="start_price">Стартовая цена (₽)*</label>
+      <input class="form-control" type="number" step="0.01" id="start_price" name="start_price" required />
+    </div>
+    <div class="col-12">
+      <label class="form-label" for="description">Описание</label>
+      <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Сохранить</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('auctions') }}">Отмена</a>
+    </div>
+  </form>
+{% endblock %}
+
+
