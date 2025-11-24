@@ -723,7 +723,108 @@ def edit_participant(participant_id: int):
     return render_template("edit_participant.html", participant=participant)
 
 
+# ============ API маршруты для отображения данных БД ============
+
+@app.route("/api/dashboard")
+def api_dashboard():
+    """JSON API с статистикой"""
+    db = get_db()
+    return {
+        "auctions": db.get("SELECT COUNT(*) AS c FROM auctions")["c"],
+        "participants": db.get("SELECT COUNT(*) AS c FROM participants")["c"],
+        "items": db.get("SELECT COUNT(*) AS c FROM items")["c"],
+        "sales": db.get("SELECT COUNT(*) AS c FROM sales")["c"],
+    }
+
+
+@app.route("/view/auctions")
+def view_auctions():
+    """Простой просмотр всех аукционов"""
+    db = get_db()
+    auctions = db.query("SELECT id, name, location, description FROM auctions ORDER BY starts_at DESC")
+    html = "<h1>📅 Аукционы</h1><ul>"
+    for a in auctions:
+        html += f"<li><b>{a['name']}</b> ({a['location']}) - {a['description']}</li>"
+    html += "</ul><a href='/'>← Назад</a>"
+    return html
+
+
+@app.route("/view/items")
+def view_items():
+    """Простой просмотр всех предметов"""
+    db = get_db()
+    items = db.query("""
+        SELECT i.title, i.start_price, a.name 
+        FROM items i 
+        JOIN auctions a ON i.auction_id = a.id
+    """)
+    html = "<h1>🎨 Предметы</h1><ul>"
+    for item in items:
+        html += f"<li>{item['title']} - {item['start_price']} руб. (аукцион: {item['name']})</li>"
+    html += "</ul><a href='/'>← Назад</a>"
+    return html
+
+
+@app.route("/view/participants")
+def view_participants():
+    """Простой просмотр всех участников"""
+    db = get_db()
+    participants = db.query("SELECT name, contact_info FROM participants ORDER BY name")
+    html = "<h1>👥 Участники</h1><ul>"
+    for p in participants:
+        html += f"<li>{p['name']} - {p['contact_info']}</li>"
+    html += "</ul><a href='/'>← Назад</a>"
+    return html
+
+
+@app.route("/view/sales")
+def view_sales():
+    """Простой просмотр продаж"""
+    db = get_db()
+    sales = db.query("""
+        SELECT i.title, s.sold_price, p.name 
+        FROM sales s 
+        JOIN items i ON s.item_id = i.id 
+        JOIN participants p ON s.buyer_id = p.id
+    """)
+    html = "<h1>💰 Продажи</h1><ul>"
+    for sale in sales:
+        html += f"<li>{sale['title']} - {sale['sold_price']} руб. (покупатель: {sale['name']})</li>"
+    html += "</ul><a href='/'>← Назад</a>"
+    return html
+
+
+@app.route("/view/stats")
+def view_stats():
+    """Статистика системы"""
+    db = get_db()
+    stats = {
+        "auctions": db.get("SELECT COUNT(*) AS c FROM auctions")["c"],
+        "participants": db.get("SELECT COUNT(*) AS c FROM participants")["c"],
+        "items": db.get("SELECT COUNT(*) AS c FROM items")["c"],
+        "sales": db.get("SELECT COUNT(*) AS c FROM sales")["c"],
+        "revenue": db.get("SELECT COALESCE(SUM(sold_price), 0) AS total FROM sales")["total"],
+    }
+    html = """
+    <h1>📊 Статистика</h1>
+    <table border="1" style="border-collapse:collapse; padding:10px;">
+    <tr><td><b>Аукционов</b></td><td>{}</td></tr>
+    <tr><td><b>Участников</b></td><td>{}</td></tr>
+    <tr><td><b>Предметов</b></td><td>{}</td></tr>
+    <tr><td><b>Продаж</b></td><td>{}</td></tr>
+    <tr><td><b>Общая выручка</b></td><td>{} руб.</td></tr>
+    </table>
+    <br><a href='/'>← Назад</a>
+    """.format(
+        stats['auctions'],
+        stats['participants'],
+        stats['items'],
+        stats['sales'],
+        stats['revenue']
+    )
+    return html
+
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
-
 
