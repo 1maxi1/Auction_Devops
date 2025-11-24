@@ -264,3 +264,14 @@ SELECT 'Таблица sales: ' || COUNT(*) as "Продаж" FROM sales;
 
 
 
+
+sudo docker compose exec db psql -U auction_user -d auction_db -c "
+SELECT 'participants' as table_name, COUNT(*) as count FROM participants
+UNION ALL
+SELECT 'auctions', COUNT(*) FROM auctions
+UNION ALL
+SELECT 'items', COUNT(*) FROM items
+UNION ALL
+SELECT 'sales', COUNT(*) FROM sales;
+"
+
