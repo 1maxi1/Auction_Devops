@@ -169,7 +169,98 @@ E: Unsupported file ./docker-desktop-amd64.deb given on commandline
 
 
 
+-- Таблица участников
+CREATE TABLE participants (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    contact_info VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+-- Таблица аукционов
+CREATE TABLE auctions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    starts_at TIMESTAMP NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Таблица товаров
+CREATE TABLE items (
+    id SERIAL PRIMARY KEY,
+    auction_id INTEGER NOT NULL REFERENCES auctions(id) ON DELETE CASCADE,
+    seller_id INTEGER NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    lot_number VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    start_price DECIMAL(12, 2) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Таблица продаж
+CREATE TABLE sales (
+    id SERIAL PRIMARY KEY,
+    item_id INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    buyer_id INTEGER NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    sold_price DECIMAL(12, 2) NOT NULL,
+    sold_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================
+-- ВСТАВКА ТЕСТОВЫХ ДАННЫХ
+-- ============================================
+
+-- Добавление участников
+INSERT INTO participants (name, contact_info, notes) VALUES
+    ('Антик Групп', 'info@antik-group.example', 'Постоянный поставщик'),
+    ('Галерея Сапфир', 'sapphire@example', 'Крупная галерея'),
+    ('Иван Орлов', '+7 900 123 45 67', 'Частный коллекционер'),
+    ('Елена Верес', '+7 921 555 11 44', 'Специалист по живописи'),
+    ('Студия «Артлайн»', 'contact@artline.example', NULL),
+    ('Алексей Нестеров', '+7 981 777 22 33', 'Покупатель-инвестор');
+
+-- Добавление аукционов
+INSERT INTO auctions (name, location, starts_at, description) VALUES
+    ('Весенний салон', 'Москва', NOW() + INTERVAL '3 days', 'Живопись 19-20 вв.'),
+    ('Летние торги', 'Санкт-Петербург', NOW() + INTERVAL '30 days', 'Европейский фарфор'),
+    ('Вечер современного искусства', 'Москва', NOW() - INTERVAL '15 days', 'Современные авторы'),
+    ('Коллекция серебра', 'Казань', NOW() + INTERVAL '45 days', 'Столовое серебро XVIII-XIX вв.');
+
+-- Добавление товаров
+INSERT INTO items (auction_id, seller_id, lot_number, title, start_price, description) VALUES
+    (1, 1, '101', 'Пейзаж «Утро в горах»', 250000, 'Полотно, масло, 1902 г.'),
+    (1, 3, '102', 'Портрет дамы', 180000, 'Холст, масло, 1898 г.'),
+    (2, 2, '201', 'Чайный сервиз Мейсен', 320000, 'Сервиз из 12 предметов'),
+    (2, 5, '202', 'Ваза Севр', 150000, 'Фарфор, позолата'),
+    (3, 4, '301', 'Инсталляция «Пульс города»', 90000, 'Смешанная техника, 2018'),
+    (3, 1, '302', 'Графика «Контуры»', 60000, 'Бумага, тушь'),
+    (4, 5, '401', 'Серебряный кофейник', 210000, 'Россия, 1875 г.'),
+    (4, 1, '402', 'Комплект подсвечников', 170000, 'Франция, 1860 г.');
+
+-- Добавление продаж
+INSERT INTO sales (item_id, buyer_id, sold_price, sold_at) VALUES
+    (1, 6, 315000, NOW() - INTERVAL '14 days'),
+    (2, 1, 210000, NOW() - INTERVAL '13 days'),
+    (3, 4, 380000, NOW() - INTERVAL '1 days'),
+    (5, 2, 125000, NOW() - INTERVAL '10 days'),
+    (6, 3, 95000, NOW() - INTERVAL '9 days');
+
+-- Создание индексов для оптимизации
+CREATE INDEX idx_auctions_location ON auctions(location);
+CREATE INDEX idx_items_auction_id ON items(auction_id);
+CREATE INDEX idx_items_seller_id ON items(seller_id);
+CREATE INDEX idx_sales_item_id ON sales(item_id);
+CREATE INDEX idx_sales_buyer_id ON sales(buyer_id);
+
+-- Вывод информации о заполнении БД
+SELECT 'Таблица participants: ' || COUNT(*) as "Участников" FROM participants;
+SELECT 'Таблица auctions: ' || COUNT(*) as "Аукционов" FROM auctions;
+SELECT 'Таблица items: ' || COUNT(*) as "Товаров" FROM items;
+SELECT 'Таблица sales: ' || COUNT(*) as "Продаж" FROM sales;
 
 
 
