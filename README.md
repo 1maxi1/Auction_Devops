@@ -163,3 +163,47 @@ Processing triggers for libc-bin (2.39-0ubuntu8.5) ...
 test@test-VirtualBox:~$ sudo apt-get install ./docker-desktop-amd64.deb
 Reading package lists... Done
 E: Unsupported file ./docker-desktop-amd64.deb given on commandline
+
+
+
+
+
+
+
+
+
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: auction-app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - FLASK_APP=main.py
+      - DATABASE_URL=postgresql://auction_user:auction_pass@db:5432/auction_db
+    command: python main.py
+
+  db:
+    image: postgres:16-alpine
+    container_name: auction-db
+    environment:
+      POSTGRES_USER: auction_user
+      POSTGRES_PASSWORD: auction_pass
+      POSTGRES_DB: auction_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auction_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
