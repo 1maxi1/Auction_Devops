@@ -828,3 +828,71 @@ def view_stats():
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
 
+
+
+
+
+
+import os
+from typing import Any, Iterable, Optional
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+
+class AuctionDB:
+    def __init__(self, database_url: str | None = None) -> None:
+        if database_url is None:
+            database_url = os.getenv('DATABASE_URL', 'postgresql://auction_user:auction_pass@localhost:5432/auction_db')
+        
+        self.database_url = database_url
+        self.conn = psycopg2.connect(database_url)
+        self.conn.autocommit = False
+
+
+    def query(self, sql: str, params: Iterable[Any] | None = None) -> list[dict]:
+        """Выполнить SELECT запрос и вернуть список словарей"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(sql, params or [])
+            rows = cur.fetchall()
+            return [dict(row) for row in rows]
+
+
+    def execute(self, sql: str, params: Iterable[Any] | None = None) -> int:
+        """Выполнить INSERT/UPDATE/DELETE и вернуть ID последней вставленной записи"""
+        with self.conn.cursor() as cur:
+            cur.execute(sql, params or [])
+            self.conn.commit()
+            
+            # Для INSERT, попробуем получить RETURNING id
+            if sql.strip().upper().startswith('INSERT'):
+                try:
+                    sql_with_returning = sql.rstrip(';') + ' RETURNING id;'
+                    cur.execute(sql_with_returning, params or [])
+                    result = cur.fetchone()
+                    self.conn.commit()
+                    return result[0] if result else 0
+                except:
+                    return 0
+            return 0
+
+
+    def executemany(self, sql: str, seq_of_params: Iterable[Iterable[Any]]) -> None:
+        """Выполнить множественные INSERT/UPDATE/DELETE"""
+        with self.conn.cursor() as cur:
+            cur.executemany(sql, seq_of_params)
+            self.conn.commit()
+
+
+    def get(self, sql: str, params: Iterable[Any] | None = None) -> Optional[dict]:
+        """Получить одну строку"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(sql, params or [])
+            row = cur.fetchone()
+            return dict(row) if row else None
+
+
+    def close(self) -> None:
+        """Закрыть соединение"""
+        if self.conn:
+            self.conn.close()
+
