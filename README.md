@@ -275,3 +275,196 @@ UNION ALL
 SELECT 'sales', COUNT(*) FROM sales;
 "
 
+
+
+
+
+
+
+
+
+
+
+from flask import Flask, render_template_string
+from sqlalchemy import create_engine, text
+import os
+
+app = Flask(__name__)
+
+# Подключение к БД PostgreSQL
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://auction_user:auction_pass@db:5432/auction_db')
+engine = create_engine(DATABASE_URL)
+
+# HTML шаблон для главной страницы
+MAIN_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аукционный дом</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { color: #333; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+        .stat-box { background: #4CAF50; color: white; padding: 20px; border-radius: 5px; text-align: center; }
+        .stat-box h2 { margin: 0; font-size: 32px; }
+        .stat-box p { margin: 10px 0 0 0; }
+        nav { margin: 20px 0; }
+        nav a { margin-right: 15px; padding: 10px 15px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px; }
+        nav a:hover { background: #1976D2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #4CAF50; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏛️ Аукционный дом - Управление коллекцией искусства</h1>
+        
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/auctions">Аукционы</a>
+            <a href="/items">Предметы</a>
+            <a href="/participants">Участники</a>
+            <a href="/sales">Продажи</a>
+        </nav>
+        
+        {{ content }}
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    """Главная страница со статистикой"""
+    try:
+        with engine.connect() as conn:
+            participants = conn.execute(text("SELECT COUNT(*) FROM participants")).scalar()
+            auctions = conn.execute(text("SELECT COUNT(*) FROM auctions")).scalar()
+            items = conn.execute(text("SELECT COUNT(*) FROM items")).scalar()
+            sales = conn.execute(text("SELECT COUNT(*) FROM sales")).scalar()
+        
+        content = f"""
+        <div class="stats">
+            <div class="stat-box">
+                <h2>{participants}</h2>
+                <p>Участников</p>
+            </div>
+            <div class="stat-box">
+                <h2>{auctions}</h2>
+                <p>Аукционов</p>
+            </div>
+            <div class="stat-box">
+                <h2>{items}</h2>
+                <p>Предметов</p>
+            </div>
+            <div class="stat-box">
+                <h2>{sales}</h2>
+                <p>Продаж</p>
+            </div>
+        </div>
+        <h2>Добро пожаловать в Аукционный дом!</h2>
+        <p>Система управления коллекцией искусства и проведения аукционов.</p>
+        <p>Выберите раздел для просмотра детальной информации.</p>
+        """
+        return render_template_string(MAIN_TEMPLATE, content=content)
+    except Exception as e:
+        return f"<h1>Ошибка подключения к БД</h1><p>{str(e)}</p>", 500
+
+@app.route('/auctions')
+def get_auctions():
+    """Список аукционов"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT id, name, location, description, starts_at 
+                FROM auctions 
+                ORDER BY starts_at DESC
+            """))
+            auctions = result.fetchall()
+        
+        table = "<h2>📅 Аукционы</h2><table><tr><th>Название</th><th>Локация</th><th>Описание</th><th>Дата начала</th></tr>"
+        for auction in auctions:
+            table += f"<tr><td>{auction[1]}</td><td>{auction[2]}</td><td>{auction[3]}</td><td>{auction[4]}</td></tr>"
+        table += "</table>"
+        
+        return render_template_string(MAIN_TEMPLATE, content=table)
+    except Exception as e:
+        return f"<h1>Ошибка</h1><p>{str(e)}</p>", 500
+
+@app.route('/items')
+def get_items():
+    """Список товаров"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT items.id, items.title, items.start_price, items.description,
+                       auctions.name as auction_name, participants.name as seller_name
+                FROM items
+                JOIN auctions ON items.auction_id = auctions.id
+                JOIN participants ON items.seller_id = participants.id
+                ORDER BY items.id DESC
+            """))
+            items = result.fetchall()
+        
+        table = "<h2>🎨 Предметы для продажи</h2><table><tr><th>Название</th><th>Начальная цена</th><th>Описание</th><th>Аукцион</th><th>Продавец</th></tr>"
+        for item in items:
+            table += f"<tr><td>{item[1]}</td><td>{item[2]:,} ₽</td><td>{item[3]}</td><td>{item[4]}</td><td>{item[5]}</td></tr>"
+        table += "</table>"
+        
+        return render_template_string(MAIN_TEMPLATE, content=table)
+    except Exception as e:
+        return f"<h1>Ошибка</h1><p>{str(e)}</p>", 500
+
+@app.route('/participants')
+def get_participants():
+    """Список участников"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT id, name, contact_info, notes 
+                FROM participants 
+                ORDER BY name
+            """))
+            participants = result.fetchall()
+        
+        table = "<h2>👥 Участники</h2><table><tr><th>Имя</th><th>Контакт</th><th>Заметки</th></tr>"
+        for p in participants:
+            notes = p[3] if p[3] else "—"
+            table += f"<tr><td>{p[1]}</td><td>{p[2]}</td><td>{notes}</td></tr>"
+        table += "</table>"
+        
+        return render_template_string(MAIN_TEMPLATE, content=table)
+    except Exception as e:
+        return f"<h1>Ошибка</h1><p>{str(e)}</p>", 500
+
+@app.route('/sales')
+def get_sales():
+    """Список продаж"""
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("""
+                SELECT sales.id, items.title, sales.sold_price, 
+                       participants.name as buyer_name, sales.sold_at
+                FROM sales
+                JOIN items ON sales.item_id = items.id
+                JOIN participants ON sales.buyer_id = participants.id
+                ORDER BY sales.sold_at DESC
+            """))
+            sales = result.fetchall()
+        
+        table = "<h2>💰 История продаж</h2><table><tr><th>Предмет</th><th>Цена продажи</th><th>Покупатель</th><th>Дата</th></tr>"
+        for sale in sales:
+            table += f"<tr><td>{sale[1]}</td><td>{sale[2]:,} ₽</td><td>{sale[3]}</td><td>{sale[4]}</td></tr>"
+        table += "</table>"
+        
+        return render_template_string(MAIN_TEMPLATE, content=table)
+    except Exception as e:
+        return f"<h1>Ошибка</h1><p>{str(e)}</p>", 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
