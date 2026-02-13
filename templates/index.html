@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Аукционный дом{% endblock %}
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 hero-header mb-4">
+    <div>
+      <p class="badge-soft mb-3">Аукционный дом</p>
+      <h1 class="display-6 mb-3">Управление коллекцией искусства и продажами</h1>
+      <p class="mb-0">Создавайте аукционы, добавляйте предметы, отслеживайте доход и активность продавцов и покупателей в одном окне.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light" href="{{ url_for('participants') }}">Участники</a>
+      <a class="btn btn-primary" href="{{ url_for('add_auction') }}">Создать аукцион</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card dashboard-card text-center">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small">Аукционы</div>
+          <div class="display-6">{{ totals.auctions }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card dashboard-card text-center">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small">Участники</div>
+          <div class="display-6">{{ totals.participants }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card dashboard-card text-center gradient-card">
+        <div class="card-body">
+          <div class="text-uppercase small">Предметы</div>
+          <div class="display-6">{{ totals.items_count }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card dashboard-card text-center">
+        <div class="card-body">
+          <div class="text-muted text-uppercase small">Продажи</div>
+          <div class="display-6">{{ totals.sales }}</div>
+          <div class="small text-muted">∑ {{ "%.2f"|format(totals.revenue or 0) }} ₽</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <div class="card h-100 dashboard-card">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2 class="section-heading h6 mb-0">Ближайшие аукционы</h2>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('auctions') }}">Все</a>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          {% if upcoming %}
+            <div class="list-group list-group-flush">
+              {% for auction in upcoming %}
+                <div class="list-group-item">
+                  <div class="d-flex justify-content-between gap-3 flex-wrap">
+                    <div>
+                      <h6 class="mb-1">{{ auction.name }}</h6>
+                      <div class="small text-muted">
+                        {{ auction.location }} • {{ auction.starts_at.strftime('%Y-%m-%d %H:%M') }}
+                      </div>
+                    </div>
+                    <a
+                      class="btn btn-sm btn-outline-secondary"
+                      href="{{ url_for(
+                        'auctions',
+                        start=auction.starts_at.strftime('%Y-%m-%d'),
+                        end=auction.starts_at.strftime('%Y-%m-%d')
+                      ) }}"
+                    >
+                      Подробнее
+                    </a>
+                  </div>
+                  {% if auction.description %}
+                    <p class="mb-0 mt-2 small text-muted">{{ auction.description }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="p-3 mb-0 text-muted">Аукционы пока не запланированы.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="card h-100 dashboard-card">
+        <div class="card-header bg-white border-0 pt-4 px-4">
+          <h2 class="section-heading h6 mb-0">Топ продавцов</h2>
+        </div>
+        <div class="card-body p-0">
+          {% if top_sellers %}
+            <table class="table table-sm mb-0 top-sellers-table">
+              <thead>
+                <tr>
+                  <th>Продавец</th>
+                  <th class="text-end">Доход, ₽</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for seller in top_sellers %}
+                  <tr>
+                    <td>{{ seller.name }}</td>
+                    <td class="text-end">{{ "%.2f"|format(seller.total or 0) }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="p-3 mb-0 text-muted">Продажи ещё не зарегистрированы.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

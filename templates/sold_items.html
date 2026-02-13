@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Проданные предметы{% endblock %}
+{% block content %}
+  <h1 class="h4 mb-4">Проданные предметы</h1>
+  <form class="filter-form row gy-2 gx-3 align-items-end mb-4" method="get">
+    <div class="col-sm-4 col-md-3">
+      <label class="form-label" for="start">Дата с</label>
+      <input class="form-control" type="date" id="start" name="start" value="{{ start }}" />
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <label class="form-label" for="end">Дата по</label>
+      <input class="form-control" type="date" id="end" name="end" value="{{ end }}" />
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <button class="btn btn-primary w-100" type="submit">Показать</button>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Лот</th>
+          <th>Аукцион</th>
+          <th>Покупатель</th>
+          <th>Дата продажи</th>
+          <th class="text-end">Цена, ₽</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if sales %}
+          {% for sale in sales %}
+            <tr>
+              <td>{{ sale.title }}</td>
+              <td>{{ sale.lot_number }}</td>
+              <td>{{ sale.auction_name }}</td>
+              <td>{{ sale.buyer_name }}</td>
+              <td>{{ sale.sold_at }}</td>
+              <td class="text-end">{{ "%.2f"|format(sale.sold_price or 0) }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">Нет продаж в выбранный период.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

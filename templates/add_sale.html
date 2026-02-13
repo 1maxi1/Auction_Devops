@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Новая продажа{% endblock %}
+{% block content %}
+  <h1 class="h4 mb-4">Зафиксировать продажу</h1>
+  <form class="row g-3" method="post">
+    <div class="col-md-6">
+      <label class="form-label" for="item_id">Предмет*</label>
+      <select class="form-select" id="item_id" name="item_id" required>
+        <option value="">Выберите...</option>
+        {% for item in items %}
+          <option value="{{ item.id }}">
+            {{ item.title }} (лот {{ item.lot_number }}) — {{ item.auction_name }} / {{ item.starts_at }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label" for="buyer_id">Покупатель*</label>
+      <select class="form-select" id="buyer_id" name="buyer_id" required>
+        <option value="">Выберите...</option>
+        {% for buyer in buyers %}
+          <option value="{{ buyer.id }}">{{ buyer.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" for="sold_price">Цена продажи (₽)*</label>
+      <input class="form-control" type="number" step="0.01" id="sold_price" name="sold_price" required />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label" for="sold_at">Дата и время продажи*</label>
+      <input class="form-control" type="datetime-local" id="sold_at" name="sold_at" required />
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <button class="btn btn-primary" type="submit">Сохранить</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('sold_items') }}">К продажам</a>
+    </div>
+  </form>
+{% endblock %}
+
+

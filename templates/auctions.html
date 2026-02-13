@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Аукционы{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-4">
+    <h1 class="h4 mb-0">Аукционы</h1>
+    <div class="btn-group">
+      <a class="btn btn-outline-secondary" href="{{ url_for('auction_revenue') }}">Отчёт по доходам</a>
+      <a class="btn btn-primary" href="{{ url_for('add_auction') }}">Добавить аукцион</a>
+    </div>
+  </div>
+
+  <form class="filter-form row gy-2 gx-3 align-items-end mb-4" method="get">
+    <div class="col-sm-4 col-md-3">
+      <label class="form-label" for="start">Дата с</label>
+      <input class="form-control" type="date" id="start" name="start" value="{{ start }}" />
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <label class="form-label" for="end">Дата по</label>
+      <input class="form-control" type="date" id="end" name="end" value="{{ end }}" />
+    </div>
+    <div class="col-sm-4 col-md-3">
+      <label class="form-label" for="location">Место</label>
+      <select class="form-select" id="location" name="location">
+        <option value="">Все места</option>
+        {% for loc in locations %}
+          <option value="{{ loc.location }}" {% if loc.location == location %}selected{% endif %}>{{ loc.location }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-4 col-md-3 d-flex gap-2">
+      <button class="btn btn-primary flex-grow-1" type="submit">Фильтр</button>
+      <a class="btn btn-outline-secondary flex-grow-1" href="{{ url_for('auctions') }}">Сброс</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Место</th>
+          <th>Дата и время</th>
+          <th>Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if auctions %}
+          {% for auction in auctions %}
+            <tr>
+              <td class="fw-semibold">{{ auction.name }}</td>
+              <td>{{ auction.location }}</td>
+              <td>{{ auction.starts_at }}</td>
+              <td>{{ auction.description or "—" }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">Аукционы не найдены.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+

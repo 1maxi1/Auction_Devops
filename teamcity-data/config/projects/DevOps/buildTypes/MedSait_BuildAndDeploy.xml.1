@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="ef90881d-1e5d-4422-8ca4-dcf0aff91e16" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2025.3/project-config.xsd">
+  <name>Build and Deploy</name>
+  <description />
+  <settings>
+    <build-runners>
+      <runner id="DockerCommand" name="" type="DockerCommand">
+        <parameters>
+          <param name="docker.command.type" value="build" />
+          <param name="docker.push.remove.image" value="true" />
+          <param name="dockerfile.path" value="Dockerfile" />
+          <param name="dockerfile.source" value="PATH" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="python_runner" name="" type="python-runner">
+        <parameters>
+          <param name="command" value="file" />
+          <param name="coverageArgs" value="--omit=*lib*" />
+          <param name="envTool" value="none" />
+          <param name="installToolPackage" value="true" />
+          <param name="isCoverageEnabled" value="false" />
+          <param name="isTestReportingEnabled" value="true" />
+          <param name="poetryExecutable" value="poetry" />
+          <param name="pythonVersion" value="python3" />
+          <param name="scriptFile" value="app.py" />
+          <param name="teamcity.build.workingDir" value="app" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="virtualenvEnvName" value=".venv" />
+          <param name="virtualenvFile" value="requirements.txt" />
+        </parameters>
+      </runner>
+      <runner id="python_runner_1" name="" type="python-runner">
+        <parameters>
+          <param name="command" value="file" />
+          <param name="coverageArgs" value="--omit=*lib*" />
+          <param name="envTool" value="none" />
+          <param name="installToolPackage" value="true" />
+          <param name="isCoverageEnabled" value="false" />
+          <param name="isTestReportingEnabled" value="true" />
+          <param name="poetryExecutable" value="poetry" />
+          <param name="pythonVersion" value="python3" />
+          <param name="scriptFile" value="init_db.py" />
+          <param name="teamcity.build.workingDir" value="app" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="virtualenvEnvName" value=".venv" />
+          <param name="virtualenvFile" value="requirements.txt" />
+        </parameters>
+      </runner>
+      <runner id="python_runner_2" name="" type="python-runner">
+        <parameters>
+          <param name="command" value="file" />
+          <param name="coverageArgs" value="--omit=*lib*" />
+          <param name="envTool" value="none" />
+          <param name="installToolPackage" value="true" />
+          <param name="isCoverageEnabled" value="false" />
+          <param name="isTestReportingEnabled" value="true" />
+          <param name="poetryExecutable" value="poetry" />
+          <param name="pythonVersion" value="python3" />
+          <param name="scriptFile" value="utils.py" />
+          <param name="teamcity.build.workingDir" value="app" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="virtualenvEnvName" value=".venv" />
+          <param name="virtualenvFile" value="requirements.txt" />
+        </parameters>
+      </runner>
+      <runner id="DockerCompose" name="" type="DockerCompose">
+        <parameters>
+          <param name="dockerCompose.file" value="docker-compose.yml" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="simpleRunner" name="" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="call init.bat" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="simpleRunner_1" name="" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="call install.bat" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+      <runner id="simpleRunner_2" name="" type="simpleRunner">
+        <parameters>
+          <param name="script.content" value="call run.bat" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="use.custom.script" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="DevOps_HttpsGithubComKrocodillerDevOpsGitRefsHeadsMain" />
+    </vcs-settings>
+    <build-triggers>
+      <build-trigger id="TRIGGER_1" type="vcsTrigger">
+        <parameters>
+          <param name="branchFilter" value="+:*" />
+          <param name="enableQueueOptimization" value="true" />
+          <param name="quietPeriodMode" value="DO_NOT_USE" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
+    <build-extensions>
+      <extension id="perfmon" type="perfmon">
+        <parameters>
+          <param name="teamcity.perfmon.feature.enabled" value="true" />
+        </parameters>
+      </extension>
+    </build-extensions>
+  </settings>
+</build-type>
+
