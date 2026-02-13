@@ -1,2 +1,6 @@
 Flask>=3.0,<4.0
 psycopg2-binary>=2.9,<3.0
+flask-sqlalchemy
+psycopg2-binary
+flask-sqlalchemy
+psycopg2-binary

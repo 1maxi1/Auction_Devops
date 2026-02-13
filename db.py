@@ -1,4 +1,5 @@
 import os
+from flask_sqlalchemy import SQLAlchemy
 from typing import Any, Iterable, Optional
 
 import psycopg2
@@ -10,6 +11,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 
     'postgresql://user:password@postgres:5432/auction_db')
 db = SQLAlchemy(app)
+
 class AuctionDB:
     """
     Обёртка над подключением к PostgreSQL.
